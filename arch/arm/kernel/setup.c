@@ -765,7 +765,7 @@ void __init setup_arch(char **cmdline_p)
 	if (!mdesc)
 		mdesc = setup_machine_tags(__atags_pointer, __machine_arch_type);
 	machine_desc = mdesc;
-	machine_name = mdesc->name;
+	machine_name = setup_machine_name_fdt(mdesc);
 
 	setup_dma_zone(mdesc);
 

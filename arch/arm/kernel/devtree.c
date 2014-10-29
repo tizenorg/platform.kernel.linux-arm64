@@ -169,6 +169,14 @@ void __init arm_dt_init_cpu_maps(void)
 	}
 }
 
+const char * __init setup_machine_name_fdt(struct machine_desc *mdesc)
+{
+	if (!initial_boot_params)
+		return mdesc->name;
+
+	return of_flat_dt_get_machine_name();
+}
+
 /**
  * setup_machine_fdt - Machine setup when an dtb was passed to the kernel
  * @dt_phys: physical address of dt blob
@@ -191,6 +199,7 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	mdesc_best = (struct machine_desc *)&__mach_desc_GENERIC_DT;
 #endif
 
+	initial_boot_params = NULL;
 	if (!dt_phys)
 		return NULL;
 

@@ -13,13 +13,20 @@
 
 #define HAVE_ARCH_DEVTREE_FIXUPS
 
+struct machine_desc;
+
 #ifdef CONFIG_OF
 
+extern const char * __init setup_machine_name_fdt(struct machine_desc *mdesc);
 extern struct machine_desc *setup_machine_fdt(unsigned int dt_phys);
 extern void arm_dt_memblock_reserve(void);
 extern void __init arm_dt_init_cpu_maps(void);
 
 #else /* CONFIG_OF */
+const char * __init setup_machine_name_fdt(struct machine_desc *mdesc)
+{
+	return mdesc->name;
+}
 
 static inline struct machine_desc *setup_machine_fdt(unsigned int dt_phys)
 {
