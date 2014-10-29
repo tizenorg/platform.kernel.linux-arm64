@@ -684,6 +684,18 @@ static const char *config_cmdline = CONFIG_CMDLINE;
 static const char *config_cmdline = "";
 #endif
 
+
+const char * __init of_flat_dt_get_machine_name(void)
+{
+	const char *name;
+	unsigned long dt_root = of_get_flat_dt_root();
+
+	name = of_get_flat_dt_prop(dt_root, "model", NULL);
+	if (!name)
+		name = of_get_flat_dt_prop(dt_root, "compatible", NULL);
+	return name;
+}
+
 int __init early_init_dt_scan_chosen(unsigned long node, const char *uname,
 				     int depth, void *data)
 {

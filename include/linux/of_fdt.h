@@ -135,9 +135,11 @@ extern int early_init_dt_scan_root(unsigned long node, const char *uname,
 				   int depth, void *data);
 
 /* Other Prototypes */
+extern const char *of_flat_dt_get_machine_name(void);
 extern void unflatten_device_tree(void);
 extern void early_init_devtree(void *);
 #else /* CONFIG_OF_FLATTREE */
+extern const char *of_flat_dt_get_machine_name(void) { return NULL; }
 static inline void unflatten_device_tree(void) {}
 #endif /* CONFIG_OF_FLATTREE */
 
