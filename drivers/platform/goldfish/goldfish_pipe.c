@@ -149,6 +149,25 @@ enum {
 	BIT_WAKE_ON_READ   = 2,  /* want to be woken on reads */
 };
 
+static unsigned long pipe_id(struct goldfish_pipe *pipe)
+{
+	/*
+	 * We use the pointer address to the goldfish_pipe struct as a unique
+	 * identifier for the pipe in the backend; the backend doesn't
+	 * acutally know or assume this is a pointer.
+	 */
+	return (unsigned long)pipe;
+}
+
+static void set_pipe_channel(struct goldfish_pipe *pipe)
+{
+	struct goldfish_pipe_dev *dev = pipe->dev;
+
+	writel((u32)pipe_id(pipe), dev->base + PIPE_REG_CHANNEL);
+#ifdef CONFIG_64BIT
+	writel((u32)(pipe_id(pipe) >> 32), dev->base + PIPE_REG_CHANNEL_HIGH);
+#endif
+}
 
 static u32 goldfish_cmd_status(struct goldfish_pipe *pipe, u32 cmd)
 { 
@@ -157,10 +176,7 @@ static u32 goldfish_cmd_status(struct goldfish_pipe *pipe, u32 cmd)
 	struct goldfish_pipe_dev *dev = pipe->dev;
 
 	spin_lock_irqsave(&dev->lock, flags);
-	writel((u32)(u64)pipe, dev->base + PIPE_REG_CHANNEL);
-#ifdef CONFIG_64BIT
-	writel((u32)((u64)pipe >> 32), dev->base + PIPE_REG_CHANNEL_HIGH);
-#endif
+	set_pipe_channel(pipe);
 	writel(cmd, dev->base + PIPE_REG_COMMAND);
 	status = readl(dev->base + PIPE_REG_STATUS);
 	spin_unlock_irqrestore(&dev->lock, flags);
@@ -173,10 +189,7 @@ static void goldfish_cmd(struct goldfish_pipe *pipe, u32 cmd)
 	struct goldfish_pipe_dev *dev = pipe->dev;
 
 	spin_lock_irqsave(&dev->lock, flags);
-	writel((u32)(u64)pipe, dev->base + PIPE_REG_CHANNEL);
-#ifdef CONFIG_64BIT
-	writel((u32)((u64)pipe >> 32), dev->base + PIPE_REG_CHANNEL_HIGH);
-#endif
+	set_pipe_channel(pipe);
 	writel(cmd, dev->base + PIPE_REG_COMMAND);
 	spin_unlock_irqrestore(&dev->lock, flags);
 }
@@ -251,7 +264,7 @@ static int access_with_param(struct goldfish_pipe_dev *dev, const int cmd,
 		return -1;
 
 	aps->result = INITIAL_BATCH_RESULT;
-	aps->channel = (unsigned long)pipe;
+	aps->channel = pipe_id(pipe);
 	aps->size = avail;
 	aps->address = address;
 	aps->cmd = cmd;
@@ -319,10 +332,7 @@ static ssize_t goldfish_pipe_read_write(struct file *filp, char __user *buffer,
 		if (access_with_param(dev,
 				      is_write ? CMD_WRITE_BUFFER : CMD_READ_BUFFER,
 				      address, avail, pipe, &status)) {
-			writel((u32)(u64)pipe, dev->base + PIPE_REG_CHANNEL);
-#ifdef CONFIG_64BIT
-			writel((u32)((u64)pipe >> 32), dev->base + PIPE_REG_CHANNEL_HIGH);
-#endif
+			set_pipe_channel(pipe);
 			writel(avail, dev->base + PIPE_REG_SIZE);
 			writel(address, dev->base + PIPE_REG_ADDRESS);
 #ifdef CONFIG_64BIT
