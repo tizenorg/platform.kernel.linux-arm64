@@ -118,7 +118,7 @@ static void psci_power_state_unpack(u32 power_state,
  * The following two functions are invoked via the invoke_psci_fn pointer
  * and will not be inlined, allowing us to piggyback on the AAPCS.
  */
-static noinline int __invoke_psci_fn_hvc(u64 function_id, u64 arg0, u64 arg1,
+__attribute__((no_instrument_function)) static noinline int __invoke_psci_fn_hvc(u64 function_id, u64 arg0, u64 arg1,
 					 u64 arg2)
 {
 	asm volatile(
@@ -133,7 +133,7 @@ static noinline int __invoke_psci_fn_hvc(u64 function_id, u64 arg0, u64 arg1,
 	return function_id;
 }
 
-static noinline int __invoke_psci_fn_smc(u64 function_id, u64 arg0, u64 arg1,
+__attribute__((no_instrument_function)) static noinline int __invoke_psci_fn_smc(u64 function_id, u64 arg0, u64 arg1,
 					 u64 arg2)
 {
 	asm volatile(
